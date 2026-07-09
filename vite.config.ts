@@ -7,8 +7,10 @@ const git = (cmd: string, fallback: string) => {
   catch { return fallback }
 }
 
-const APP_VERSION = git('describe --tags --abbrev=0', 'dev')
-const APP_DATE    = git('log -1 --format=%cI', new Date().toISOString())
+// APP_VERSION/APP_DATE can be passed in at build time (docker, ci) where there
+// is no .git to read. fall back to git locally, then to a sane default.
+const APP_VERSION = process.env.APP_VERSION || git('describe --tags --always --dirty', 'dev')
+const APP_DATE    = process.env.APP_DATE || git('log -1 --format=%cI', new Date().toISOString())
 
 export default defineConfig({
   plugins: [react()],
