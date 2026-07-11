@@ -1,3 +1,5 @@
+import { HeroField } from './HeroField'
+
 function getVersion() {
   return typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev'
 }
@@ -5,6 +7,7 @@ function getVersion() {
 export function Hero() {
   return (
     <header id="top" className="hero">
+      <HeroField />
       <div className="hero-meta-line">
         <span className="hero-mark" aria-hidden="true">
           vk - <span className="hero-version">{getVersion()}</span>
