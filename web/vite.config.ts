@@ -1,4 +1,5 @@
 import { execSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -15,6 +16,18 @@ const APP_DATE    = process.env.APP_DATE || git('log -1 --format=%cI', new Date(
 export default defineConfig({
   plugins: [react()],
   base: './',
+  resolve: {
+    alias: {
+      '@shared': fileURLToPath(new URL('../shared/src', import.meta.url)),
+    },
+  },
+  server: {
+    // notes api runs separately in dev; proxy /api to it so the browser sees
+    // one origin (same as behind caddy in prod)
+    proxy: {
+      '/api': 'http://localhost:8787',
+    },
+  },
   define: {
     __APP_VERSION__: JSON.stringify(APP_VERSION),
     __APP_DATE__:    JSON.stringify(APP_DATE),
