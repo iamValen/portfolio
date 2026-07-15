@@ -12,6 +12,7 @@ const NAV: NavItem[] = [
   { kind: 'section', id: 'experience', label: 'Experience' },
   { kind: 'page',    to: '/projects',  match: '/projects', label: 'Projects' },
   { kind: 'page',    to: '/homelab',   match: '/homelab',  label: 'HomeLab' },
+  { kind: 'page',    to: '/wall',      match: '/wall',     label: 'Wall' },
   { kind: 'section', id: 'stack',      label: 'Stack' },
   { kind: 'section', id: 'education',  label: 'Education' },
 ]

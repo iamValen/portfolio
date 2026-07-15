@@ -5,6 +5,7 @@ import { HomeLabPage } from './pages/HomeLabPage'
 import { NotePage } from './pages/NotePage'
 import { ProjectsPage } from './pages/ProjectsPage'
 import { ProjectPage } from './pages/ProjectPage'
+import { WallPage } from './pages/WallPage'
 import { useRoute } from './hooks/useRoute'
 
 export default function App() {
@@ -27,6 +28,7 @@ export default function App() {
 function renderPage(path: string) {
   const normalized = path.replace(/\/$/, '') || '/'
 
+  if (normalized === '/wall') return <WallPage />
   if (normalized === '/homelab') return <HomeLabPage />
   // The lab notes index now lives on the HomeLab page; keep /notes resolving.
   if (normalized === '/notes') return <HomeLabPage />
