@@ -7,3 +7,11 @@ dist
 .claude
 docker-compose.yml
 DEPLOY.md
+
+# local sqlite lives here in dev, the container uses its own volume
+server/data
+*.db
+
+# gradle build output, rebuilt inside the image
+server/build
+server/.gradle

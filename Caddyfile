@@ -1,9 +1,17 @@
 :80 {
-	root * /srv
 	encode gzip zstd
 
-	# the app uses a client side router, so unknown paths must fall back
-	# to index.html instead of 404ing on refresh / direct links
-	try_files {path} /index.html
-	file_server
+	# the notes api runs in its own container. hand /api/* off to it so the
+	# browser still sees a single origin.
+	handle /api/* {
+		reverse_proxy api:8787
+	}
+
+	handle {
+		root * /srv
+		# the app uses a client side router, so unknown paths must fall back
+		# to index.html instead of 404ing on refresh / direct links
+		try_files {path} /index.html
+		file_server
+	}
 }

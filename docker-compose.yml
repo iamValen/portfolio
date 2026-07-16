@@ -2,12 +2,29 @@ services:
   web:
     build:
       context: .
-      args:
-        APP_VERSION: ${APP_VERSION:-dev}
-    image: portfolio:latest
+      target: web
+    image: portfolio-web:latest
     restart: unless-stopped
     expose:
       - "80"
+    depends_on:
+      - api
+
+  api:
+    build:
+      context: .
+      target: api
+    image: portfolio-api:latest
+    restart: unless-stopped
+    environment:
+      # salts the hashed visitor ip. has to be set (see .env.example) or everyone
+      # shares one bucket for the rate limit.
+      IP_SALT: ${IP_SALT:?set IP_SALT in .env}
+      DB_PATH: /data/notes.db
+    volumes:
+      - notes:/data
+    expose:
+      - "8787"
 
   cloudflared:
     image: cloudflare/cloudflared:latest
@@ -17,3 +34,6 @@ services:
       TUNNEL_TOKEN: ${TUNNEL_TOKEN}
     depends_on:
       - web
+
+volumes:
+  notes:

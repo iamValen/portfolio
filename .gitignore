@@ -35,3 +35,10 @@ vite.config.d.ts
 .env
 .env.*
 !.env.example
+
+# local notes database (dev). prod keeps it on a docker volume
+server/data/
+
+# gradle
+server/build/
+server/.gradle/
