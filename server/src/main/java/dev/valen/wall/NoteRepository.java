@@ -32,6 +32,17 @@ class NoteRepository {
             )
             """);
         jdbc.execute("CREATE INDEX IF NOT EXISTS idx_notes_created ON notes (created_at)");
+        jdbc.execute("CREATE INDEX IF NOT EXISTS idx_notes_ip ON notes (ip_hash)");
+    }
+
+    // has this visitor already left a note? one per person, keyed on the salted
+    // ip hash. cheap thanks to the ip_hash index.
+    boolean hasPostedFrom(String ipHash) {
+        Boolean posted = jdbc.query(
+            "SELECT 1 FROM notes WHERE ip_hash = ? LIMIT 1",
+            ResultSet::next,
+            ipHash);
+        return Boolean.TRUE.equals(posted);
     }
 
     Note insert(NoteInput input, String ipHash) {

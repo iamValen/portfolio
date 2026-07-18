@@ -25,21 +25,32 @@ class NoteController {
     private final RateLimiter rateLimiter;
     private final Validation validation;
 
-    // We never store raw ips. A salted hash is enough to rate limit without
-    // keeping personal data around.
+    // One note per visitor, like signing a wall once. Best effort by ip, set
+    // ONE_PER_IP=false in dev if you want to keep posting test notes.
+    private final boolean onePerIp;
+
+    // We never store raw ips. A salted hash is enough to rate limit and cap one
+    // note per person without keeping personal data around.
     private final String salt;
 
     NoteController(NoteRepository notes, RateLimiter rateLimiter, Validation validation,
+                   @Value("${ONE_PER_IP:true}") boolean onePerIp,
                    @Value("${IP_SALT:dev-salt}") String salt) {
         this.notes = notes;
         this.rateLimiter = rateLimiter;
         this.validation = validation;
+        this.onePerIp = onePerIp;
         this.salt = salt;
     }
 
     @GetMapping("/health")
     Map<String, Object> health() {
         return Map.of("ok", true);
+    }
+
+    @GetMapping("/me")
+    Map<String, Object> me(HttpServletRequest req) {
+        return Map.of("hasPosted", onePerIp && notes.hasPostedFrom(visitorHash(req)));
     }
 
     @GetMapping("/notes")
@@ -51,10 +62,15 @@ class NoteController {
 
     @PostMapping("/notes")
     ResponseEntity<?> post(@RequestBody NoteInput body, HttpServletRequest req) {
-        String ipHash = hash(salt + req.getRemoteAddr());
+        String ipHash = visitorHash(req);
+
+        if (onePerIp && notes.hasPostedFrom(ipHash)) {
+            return error(HttpStatus.CONFLICT, "you've already signed the wall");
+        }
         if (rateLimiter.limited(ipHash)) {
             return error(HttpStatus.TOO_MANY_REQUESTS, "too many notes for now, come back in a bit");
         }
+
         Note note = notes.insert(validation.validate(body), ipHash);
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("note", note));
     }
@@ -71,6 +87,14 @@ class NoteController {
 
     private static ResponseEntity<Object> error(HttpStatus status, String message) {
         return ResponseEntity.status(status).body(Map.of("error", message));
+    }
+
+    // Behind cloudflare the true visitor ip is in cf-connecting-ip. Fall back to
+    // the forwarded ip nginx passes, then the socket.
+    private String visitorHash(HttpServletRequest req) {
+        String cf = req.getHeader("cf-connecting-ip");
+        String ip = (cf != null && !cf.isBlank()) ? cf : req.getRemoteAddr();
+        return hash(salt + ip);
     }
 
     private static String hash(String value) {
