@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, PointerEvent as RPointerEvent } from 'react'
 import type { Note } from '@shared'
 import { fetchAllNotes, fetchHasPosted } from '../lib/notesApi'
-import { boardHeight, scatter, CARD_W, type Pos } from '../lib/wallLayout'
+import { boardHeight, scatter, CARD_W, CARD_H, type Pos } from '../lib/wallLayout'
 import { DrawPad } from '../components/DrawPad'
 import { NoteCard } from '../components/NoteCard'
 
@@ -85,9 +85,11 @@ export function WallPage() {
   }, [])
 
   const base = useMemo(() => scatter(notes.map((n) => n.id), boardWidth), [notes, boardWidth])
-  // a dragged card wins over its seeded spot
+  // a dragged card wins over its scattered spot
   const positions = useMemo(() => ({ ...base, ...moved }), [base, moved])
-  const height = useMemo(() => boardHeight(positions), [positions])
+  // the board is sized to the natural pile, not to wherever you've dragged
+  // things, so it stays a fixed rectangle you can't drag a note out of
+  const height = useMemo(() => boardHeight(base), [base])
 
   function onDown(id: string, e: RPointerEvent<HTMLElement>) {
     const cur = positions[id] ?? { x: 0, y: 0 }
@@ -100,9 +102,11 @@ export function WallPage() {
   function onMove(e: RPointerEvent<HTMLElement>) {
     const d = drag.current
     if (!d) return
+    // keep the note inside the board on both axes, no dragging off into space
     const maxX = Math.max(0, boardWidth - CARD_W)
+    const maxY = Math.max(0, height - CARD_H)
     const x = Math.min(maxX, Math.max(0, d.ox + (e.clientX - d.px)))
-    const y = Math.max(0, d.oy + (e.clientY - d.py))
+    const y = Math.min(maxY, Math.max(0, d.oy + (e.clientY - d.py)))
     setMoved((prev) => ({ ...prev, [d.id]: { x, y } }))
   }
 
