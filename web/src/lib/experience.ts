@@ -4,17 +4,17 @@ export type Experience = {
   period: string
   /** A brief, first-person description of what you do / own in this role. */
   description: string
-  /** Technologies you use here, written like the projects' stack line. */
-  stack: string
+  /** Technologies you use here, written like the projects' stack line. Optional. */
+  stack?: string
 }
 
 export const EXPERIENCES: Experience[] = [
   {
     company: 'Deloitte',
-    role: 'Programmer',
-    period: 'Sept 2026 → Present',
+    role: 'Junior Platform Engineer',
+    period: 'Starting Sept 2026',
     description:
-      'TODO: brief description of your role here, what you build, what you own, the impact.',
-    stack: 'TODO · list · the · technologies · you · use',
+      "I'm joining in September 2026, my first role out of university. I'll be on the platform engineering side, so infrastructure and the tooling teams build on. I'll write up what I actually work on once I've started.",
+    // stack goes here once I know what I'm working with
   },
 ]
